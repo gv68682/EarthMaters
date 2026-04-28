@@ -1,66 +1,50 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+import fs from 'fs';
+import path from 'path';
+import Papa from 'papaparse';
+import Link from 'next/link';
+import ProductTabs from '@/components/ProductTabs';
 
-export default function Home() {
+async function getProducts() {
+  try {
+    const csvPath = path.join(process.cwd(), '../web scraping2/scraped_data.csv');
+    const fileContent = fs.readFileSync(csvPath, 'utf8');
+    
+    const parsed = Papa.parse(fileContent, {
+      header: true,
+      skipEmptyLines: true,
+    });
+    
+    return parsed.data; // Return ALL products
+  } catch (error) {
+    console.error("Error reading csv:", error);
+    return [];
+  }
+}
+
+export default async function Home() {
+  const products = await getProducts();
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="container">
+      <div className="hero glass animate-fade-in">
+        <h1 className="hero-title">Bring Nature <span style={{color: 'var(--primary)'}}>Home</span></h1>
+        <p className="hero-subtitle">
+          Explore our premium collection of fruit plants, seeds, and outdoor decor to transform your living spaces into green sanctuaries.
+        </p>
+        <Link href="/products" className="btn btn-primary" style={{textDecoration: 'none'}}>Shop Collection</Link>
+      </div>
+
+      <div className="section">
+        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2rem'}}>
+          <div>
+            <h2 style={{fontSize: '2rem', marginBottom: '0.5rem'}}>Featured Plants</h2>
+            <p style={{color: 'var(--text-light)'}}>Carefully nurtured and ready for your garden</p>
+          </div>
+          <Link href="/products" style={{color: 'var(--primary)', fontWeight: '500', textDecoration: 'none'}}>View All →</Link>
         </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+
+        <ProductTabs products={products} />
+      </div>
+    </main>
   );
 }
