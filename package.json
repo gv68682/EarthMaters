@@ -10,6 +10,8 @@
   "dependencies": {
     "@stripe/stripe-js": "^9.3.1",
     "bcryptjs": "^3.0.3",
+    "csv-parser": "^3.2.0",
+    "dotenv": "^17.4.2",
     "mongodb": "^7.2.0",
     "mongoose": "^9.5.0",
     "next": "16.2.4",
@@ -25,6 +27,7 @@
     "@types/papaparse": "^5.5.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }
