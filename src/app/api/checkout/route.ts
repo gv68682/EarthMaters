@@ -8,6 +8,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_mock', {
 export async function POST(req: Request) {
   try {
     const { items } = await req.json();
+    console.log("CHECKOUT ITEMS:", JSON.stringify(items, null, 2));
 
     if (!items || items.length === 0) {
       return NextResponse.json({ error: 'No items in cart' }, { status: 400 });
@@ -30,10 +31,10 @@ export async function POST(req: Request) {
       line_items: lineItems,
       mode: 'payment',
       success_url: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/cart`,
+      cancel_url: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/products`,
     });
 
-    return NextResponse.json({ id: session.id });
+    return NextResponse.json({ url: session.url });
   } catch (error: any) {
     console.error("Stripe Checkout error:", error);
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });

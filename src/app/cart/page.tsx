@@ -2,27 +2,26 @@
 
 import { useCart } from '@/context/CartContext';
 import Link from 'next/link';
-import { useState } from 'react';
-
-import { loadStripe } from '@stripe/stripe-js';
-
-
+import { useState, useEffect } from 'react';
 
 export default function CartPage() {
-  const { cart, addToCart, removeFromCart } = useCart();
+  const { cart, addToCart, removeFromCart, clearCart } = useCart();
   const [loading, setLoading] = useState(false);
 
-  // Safely parse Indian format string back to numbers stripping prefix dots and commas
-  const parsePrice = (priceStr: string) => {
-    if (!priceStr) return 0;
-    const cleanStr = priceStr.replace(/,/g, '');
-    const match = cleanStr.match(/\d+(\.\d+)?/);
-    return match ? parseFloat(match[0]) : 0;
-  };
+  useEffect(() => {
+    const handlePageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) {
+        // Page was restored from bfcache - reset loading and clear cart
+        setLoading(false);
+        clearCart();
+      }
+    };
+    window.addEventListener('pageshow', handlePageShow);
+    return () => window.removeEventListener('pageshow', handlePageShow);
+  }, []);
 
   const totalAmount = cart.reduce((total, item) => {
-    const val = parsePrice(item.price);
-    return total + (isNaN(val) ? 0 : val * item.quantity);
+    return total + (item.priceValue ?? 0) * item.quantity;
   }, 0);
 
   const handleCheckout = async () => {
@@ -31,8 +30,8 @@ export default function CartPage() {
       const payloadItems = cart.map(item => ({
         name: item.name,
         imageUrl: item.imageUrl,
-        priceValue: parsePrice(item.price),
-        quantity: item.quantity
+        priceValue: item.priceValue,
+        quantity: item.quantity,
       }));
 
       const res = await fetch('/api/checkout', {
@@ -43,13 +42,9 @@ export default function CartPage() {
 
       const session = await res.json();
 
-      if (session.id) {
-        // const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
-        const stripe = (await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)) as any;
-        if (!stripe) return;
-        await stripe.redirectToCheckout({
-          sessionId: session.id,
-        });
+      if (session.url) {
+        clearCart();
+        window.location.href = session.url;
       } else if (session.error) {
         alert(session.error);
       }

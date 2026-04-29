@@ -20,7 +20,14 @@ export default function ProductTabs({ products }: { products: any[] }) {
   const filteredProducts =
     activeTab === 'All'
       ? products
-      : products.filter((product) => product.category === activeTab);
+      : products.filter((product) => {
+        const cat = product.category;
+        if (activeTab === 'Flower Plants') return cat === 'Flower Plants' || cat === 'Plants' || cat === 'All Plants';
+        if (activeTab === 'Trees') return cat === 'Trees' || cat === 'Tree';
+        if (activeTab === 'Seeds') return cat === 'Seeds' || cat === 'Bulbs and Seeds' || cat === 'Plants,Seeds';
+        if (activeTab === 'Garden Decor') return cat === 'Garden Decor' || cat === 'Fertilizers';
+        return cat === activeTab;
+      });
 
   return (
     <div>
@@ -85,7 +92,8 @@ export default function ProductTabs({ products }: { products: any[] }) {
                   onClick={() =>
                     addToCart({
                       name: product.name,
-                      price: product.priceValue,
+                      price: product.salePrice || product.regularPrice,  // string like "Rs. 799.00"
+                      priceValue: product.priceValue,                     // number like 799
                       imageUrl: product.imageUrl,
                     })
                   }
